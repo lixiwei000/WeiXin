@@ -23,6 +23,8 @@ public class Constant
     /********************** 地址变量 ***********************/
     public static final String TURNING_URL = "http://apis.baidu.com/turing/turing/turing";
     public static final String BAIDU_WEATHER_URL = "http://apis.baidu.com/apistore/weatherservice/recentweathers?cityname=北京";
+    public static final String BAIDU_CAIPIAO_URL = "http://apis.baidu.com/apistore/lottery/lotteryquery";
+    public static final String BAIDU_IPQUERY_URL = "http://apis.baidu.com/apistore/iplookupservice/iplookup";
     /********************** Api_key ***********************/
     public static final String BAIDU_TOKEN = "8f0d8c85736672941de5d67c35e87ca4";
     public static final String TURING_TOKEN = "873dfff37c3170f232f17c32186a4c95";

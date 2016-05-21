@@ -2,12 +2,7 @@ package cn.edu.ncut.util;
 
 import cn.edu.ncut.model.AccessToken;
 import cn.edu.ncut.model.MediaType;
-import cn.edu.ncut.model.menu.Button;
-import cn.edu.ncut.model.menu.ClickButton;
-import cn.edu.ncut.model.menu.Menu;
-import cn.edu.ncut.model.menu.ViewButton;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import cn.edu.ncut.model.menu.*;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -37,31 +32,34 @@ public class WeiXinUtil
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET";
     private static final String UPLOAD_URL = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE";
     private static final String CREATE_MENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN";
+    private static final String QUERY_MENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/get?access_token=ACCESS_TOKEN";
+    private static final String DELETE_MENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=ACCESS_TOKEN";
     private static AccessToken accessToken;
     /**
      * get请求
      * @param url
      * @return
      */
-    public static AccessToken doGetStr(String url)
+    public static String doGetStr(String url)
     {
         HttpClient client = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("apikey",Constant.BAIDU_TOKEN);
+        String result = null;
         try
         {
             HttpResponse response = client.execute(httpGet);
             HttpEntity entity = response.getEntity();
             if (entity != null)
             {
-                String result = EntityUtils.toString(entity);
-                accessToken = JsonUtils.getObject(result,AccessToken.class);
+                result = EntityUtils.toString(entity,"UTF-8");
             }
 
         } catch (IOException e)
         {
             e.printStackTrace();
         }
-        return accessToken;
+        return result;
     }
     /**
      * post请求
@@ -102,7 +100,7 @@ public class WeiXinUtil
         if (seconds > 3600)
         {
             System.out.println("重新获取AccessToken");
-            accessToken = doGetStr(url);
+            accessToken = jsonTransfer(doGetStr(url),AccessToken.class);
             ConfigSingleton.getInstance().getProperties().setProperty("access_token", accessToken.getAccess_token());
             ConfigSingleton.getInstance().getProperties().setProperty("flushTokenTime", String.valueOf(currTime));
         }
@@ -205,12 +203,12 @@ public class WeiXinUtil
         Menu menu = new Menu();
 
         ClickButton button11 = new ClickButton();
-        button11.setName("click菜单");
+        button11.setName("帮助");
         button11.setType("click");
         button11.setKey("11");
 
         ViewButton button21 = new ViewButton();
-        button21.setName("view菜单");
+        button21.setName("历史文章");
         button21.setType("view");
         button21.setUrl("http://www.ncut.edu.cn");
 
@@ -225,7 +223,7 @@ public class WeiXinUtil
         button32.setKey("32");
 
         Button button3 = new Button();
-        button3.setName("菜单");
+        button3.setName("更多");
         button3.setSub_button(new Button[]{button31,button32});
 
         menu.setButton(new Button[]{button11,button21,button3});
@@ -255,13 +253,41 @@ public class WeiXinUtil
         Menu menuObj = jsonTransfer(resultJson,Menu.class);
         return result;
     }
-
+    /**
+     * 查询菜单栏
+     * @Author NikoBelic
+     * @Date 16/5/21 23:30
+     */
+    public static QueryMenuResult queryMenu(String token)
+    {
+        String url = QUERY_MENU_URL.replace("ACCESS_TOKEN",token);
+        String resultJson = doGetStr(url);
+        System.out.println(resultJson);
+        QueryMenuResult menu = jsonTransfer(resultJson,QueryMenuResult.class);
+        return menu;
+    }
+    /**
+     * 删除菜单
+     * @Author NikoBelic
+     * @Date 16/5/21 23:44
+     */
+    public static void delMenu(String token)
+    {
+        String url = DELETE_MENU_URL.replace("ACCESS_TOKEN",token);
+        String resultJson = doGetStr(url);
+        System.out.println(resultJson);
+        ErrorResult errorResult = jsonTransfer(resultJson,ErrorResult.class);
+        if (errorResult.getErrorcode() == 0)
+            System.out.println("删除成功");
+        else
+            System.out.println(errorResult.getErrmsg());
+    }
     public static void main(String[] args)
     {
+        AccessToken token = WeiXinUtil.getAccessToken();
         // 测试Token,返回图片信息
         //try
         //{
-        //    AccessToken token = WeiXinUtil.getAccessToken();
         //    System.out.println("票据:"+token.getAccess_token());
         //    System.out.println("有效时间:" + token.getExpires_in());
         //    String path = "/Users/lixiwei-mac/Documents/pictures/stock-photo-108182811.jpg";
@@ -273,12 +299,20 @@ public class WeiXinUtil
         //}
 
         // 测试创建Menu
-        //AccessToken token = WeiXinUtil.getAccessToken();
-        //String menu = JsonUtils.toJson(initMenu());
+        String menu = JsonUtils.toJson(initMenu());
         //System.out.println("menu:" + menu);
         //System.out.println("票据:"+token.getAccess_token());
         //System.out.println("有效时间:" + token.getExpires_in());
-        //createMenu(token.getAccess_token(),menu);
+        createMenu(token.getAccess_token(),menu);
+
+        // 测试查询Menu
+        //QueryMenuResult menu = queryMenu(token.getAccess_token());
+        //System.out.println(menu);
+
+        // 测试删除Menu
+        //delMenu(token.getAccess_token());
+        //menu = queryMenu(token.getAccess_token());
+        //System.out.println(menu);
     }
 
 }

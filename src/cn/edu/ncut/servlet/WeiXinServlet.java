@@ -1,6 +1,8 @@
 package cn.edu.ncut.servlet;
 
 import cn.edu.ncut.model.TurningBot;
+import cn.edu.ncut.model.ip.IP;
+import cn.edu.ncut.model.lottery.Lottery;
 import cn.edu.ncut.model.weather.Weather;
 import cn.edu.ncut.util.*;
 import org.dom4j.DocumentException;
@@ -69,7 +71,6 @@ public class WeiXinServlet extends HttpServlet
             String toUserName = map.get("ToUserName");
             String msgType = map.get("MsgType");
             String content = map.get("Content");
-
             String message = null;
             // 普通文字回复
             if (MessageUtil.MESSAGE_TEXT.equals(msgType))
@@ -143,11 +144,23 @@ public class WeiXinServlet extends HttpServlet
                             message = MessageUtil.initText(toUserName,fromUserName,scoreText);
                     }
                 }
-                else if ("7".equals(content))   // 测试AccessToken
+                else if ("7".equals(content))   // 获取双色球最新开奖结果
                 {
-                    message = MessageUtil.initImageMessage(toUserName,fromUserName);
-                    System.out.println(message);
+                    String lotteryCode = "ssq";
+                    String recordCount = "5";
+                    String resultJson = WeiXinUtil.doGetStr(Constant.BAIDU_CAIPIAO_URL + "?lotterycode=" + lotteryCode + "&recordcnt="+recordCount);
+                    Lottery lottery = JsonUtils.getObject(resultJson,Lottery.class);
+                    message = MessageUtil.initText(toUserName,fromUserName,MessageUtil.showLottery(lottery));
                 }
+                //else if ("8".equals(content))   //  获取地理位置信息
+                //{
+                //    String ip = req.getRemoteAddr();
+                //    System.out.println("IP_local" + req.getLocalAddr());
+                //    String resultJson = WeiXinUtil.doGetStr(Constant.BAIDU_IPQUERY_URL+"?ip=" + ip);
+                //    System.out.println(resultJson);
+                //    IP ipObj = JsonUtils.getObject(resultJson, IP.class);
+                //    message = MessageUtil.initText(toUserName,fromUserName,MessageUtil.showLocationByIp(ipObj));
+                //}
                 else if ("help".equals(content))    // 帮助菜单
                 {
                     message = MessageUtil.initText(toUserName,fromUserName,MessageUtil.menuText());
@@ -167,16 +180,36 @@ public class WeiXinServlet extends HttpServlet
 
             }
             // 事件回复
-            else if (MessageUtil.MESSAGE_ENVENT.equals(msgType))
+            else if (MessageUtil.MESSAGE_EVENT.equals(msgType))
             {
                 String eventType = map.get("Event");
+                System.out.println(eventType);
                 // 订阅事件回复
                 if (MessageUtil.MESSAGE_SUBSCRIBE.equals(eventType))
                 {
                     message = MessageUtil.initText(toUserName,fromUserName,MessageUtil.menuText());
                 }
+                else if (MessageUtil.MESSAGE_CLICK.equals(eventType))
+                {
+                    message = MessageUtil.initText(toUserName,fromUserName,MessageUtil.menuText());
+                }
+                else if (MessageUtil.MESSAGE_VIEW.equals(eventType))
+                {
+                    String url = map.get("EventKey");
+                    message = MessageUtil.initText(toUserName,fromUserName,url);
+                }
+                else if (MessageUtil.MESSAGE_SCANCODE.equals(eventType))
+                {
+                    String key = map.get("EventKey");
+                    message = MessageUtil.initText(toUserName,fromUserName,key);
+                }
             }
-            System.out.println(content);
+            else if (MessageUtil.MESSAGE_LOCATION.equals(msgType))
+            {
+                String label = map.get("Label");
+                message = MessageUtil.initText(toUserName,fromUserName,label);
+            }
+            System.out.println(message);
             out.print(message);
         }
         catch (DocumentException e)

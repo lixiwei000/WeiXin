@@ -1,18 +1,24 @@
 package cn.edu.ncut.model.menu;
 
-import com.google.gson.annotations.Expose;
-
 import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * @author NikoBelic
- * @create 16:41
+ * @create 23:41
  */
-public class Menu implements Serializable
+public class QueryMenuResult implements Serializable
 {
-    @Expose
+    private Menu menu;
     private Button[] button;
+
+    public Menu getMenu() {
+        return menu;
+    }
+
+    public void setMenu(Menu menu) {
+        this.menu = menu;
+    }
 
     public Button[] getButton() {
         return button;
@@ -24,8 +30,9 @@ public class Menu implements Serializable
 
     @Override
     public String toString() {
-        return "Menu{" +
-                "button=" + Arrays.toString(button) +
+        return "QueryMenuResult{" +
+                "menu=" + menu +
+                ", button=" + Arrays.toString(button) +
                 '}';
     }
 }

@@ -1,10 +1,16 @@
 package cn.edu.ncut.util;
 
 import cn.edu.ncut.model.*;
+import cn.edu.ncut.model.ip.IP;
+import cn.edu.ncut.model.ip.IpRet;
+import cn.edu.ncut.model.lottery.Lottery;
+import cn.edu.ncut.model.lottery.LotteryRet;
+import cn.edu.ncut.model.lottery.LotteryRetData;
 import cn.edu.ncut.model.weather.Forecast;
 import cn.edu.ncut.model.weather.Today;
 import cn.edu.ncut.model.weather.Weather;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.basic.StringBuilderConverter;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -30,11 +36,13 @@ public class MessageUtil
     public static final String MESSAGE_VOICE = "voice";
     public static final String MESSAGE_ViDEO = "video";
     public static final String MESSAGE_LINK = "link";
+    public static final String MESSAGE_CLICK = "CLICK";
     public static final String MESSAGE_LOCATION = "location";
-    public static final String MESSAGE_ENVENT = "event";
+    public static final String MESSAGE_SCANCODE = "scancode_push";
+    public static final String MESSAGE_EVENT = "event";
     public static final String MESSAGE_SUBSCRIBE = "subscribe";
     public static final String MESSAGE_UNSUBSCRIBE = "unsubscribe";
-    public static final String MESSAGE_VIEW = "view";
+    public static final String MESSAGE_VIEW = "VIEW";
 
 
     /**************************** 组装返回到微信平台的信息 ********************************/
@@ -125,6 +133,7 @@ public class MessageUtil
         buffer.append("4:显示当前天气信息\n");
         buffer.append("5:显示天气预报\n");
         buffer.append("6:查询NCUT课程成绩\n格式如下:\n6 学号 密码 季度 年份\n其中季度1为春季2为秋季\n示例:6 12345 password 2 2015\n");
+        buffer.append("7:显示近5次双色球开奖结果\n");
         buffer.append("help:显示此菜单\n");
         buffer.append("胡乱输入撒旦会跳出来^_^");
         return buffer.toString();
@@ -215,6 +224,39 @@ public class MessageUtil
             sb.append("平时:").append(course.getNormalScore()).append(",期末:").append(course.getExamScore()).append("\n");
             sb.append("~\\(≧▽≦)/~").append("\n");
         }
+        return sb.toString();
+    }
+
+    /**
+     * 获取彩票信息
+     * @Author NikoBelic
+     * @Date 16/5/22 00:32
+     */
+    public static String showLottery(Lottery lottery)
+    {
+        LotteryRet retData = lottery.getRetData();
+        LotteryRetData[] datas = retData.getData();
+        StringBuilder sb = new StringBuilder();
+        for (LotteryRetData data : datas)
+        {
+            sb.append("期号:" + data.getExpect()).append("\n结果:" + data.getOpenCode()).append("\n");
+            sb.append("开奖时间:" + data.getOpenTime() + "\n\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 根据IP获取地理位置信息
+     * @Author NikoBelic
+     * @Date 16/5/22 00:50
+     */
+    public static String showLocationByIp(IP ip)
+    {
+        IpRet ipRet = ip.getRetData();
+        StringBuilder sb = new StringBuilder();
+        sb.append("IP:").append(ipRet.getIp()).append("\n");
+        sb.append(ipRet.getCountry()).append("-").append(ipRet.getProvince()).append("-").append(ipRet.getCity()).append("\n").append(ipRet.getDistrict()).append("\n");
+        sb.append(ipRet.getCarrier()).append("\n");
         return sb.toString();
     }
     /**
