@@ -37,47 +37,13 @@ public class MessageUtil
     public static final String MESSAGE_VIEW = "view";
 
 
-    /**
-     * Xml转换为Map类型
-     * @param request
-     * @return
-     * @throws IOException
-     * @throws DocumentException
-     */
-    public static Map<String,String> xmlToMap(HttpServletRequest request) throws IOException, DocumentException
-    {
-        Map<String,String> map = new HashMap<String,String>();
-
-        SAXReader reader = new SAXReader();
-
-        InputStream ins = request.getInputStream();
-
-        Document doc = reader.read(ins);
-
-        Element root = doc.getRootElement();
-
-        List<Element> list = root.elements();
-        for (Element e : list)
-        {
-            map.put(e.getName(),e.getText());
-        }
-        ins.close();
-        return map;
-    }
+    /**************************** 组装返回到微信平台的信息 ********************************/
 
     /**
-     * 将文本消息对象转换为xml
-     * @param textMessage
-     * @return
+     * 组装文本信息
+     * @Author NikoBelic
+     * @Date 16/5/21 22:29
      */
-    public static String textMessageToXml(TextMessage textMessage)
-    {
-        XStream xstream = new XStream();
-        // 需要将xml的根节点替换成xml
-        xstream.alias("xml",TextMessage.class);
-        return xstream.toXML(textMessage);
-    }
-
     public static String initText(String toUserName,String fromUserName,String content)
     {
         TextMessage text = new TextMessage();
@@ -88,6 +54,63 @@ public class MessageUtil
         text.setContent(content);
         return textMessageToXml(text);
     }
+
+    /**
+     * 图文消息的组装
+     */
+    public static String initNewsMessage(String toUserName,String fromUserName,NewsMessage newsMessage)
+    {
+        String message = null;
+        newsMessage.setFromUserName(toUserName);
+        newsMessage.setToUserName(fromUserName);
+        message = newsMessageToXml(newsMessage);
+        return message;
+    }
+    /**
+     * 组装图片消息
+     * @Author NikoBelic
+     * @Date 16/5/20 15:21
+     */
+    public static String initImageMessage(String toUserName,String fromUsername)
+    {
+        String message = null;
+        Image image = new Image();
+        image.setMediaId("wZA8FGhd5a572TDS6RQGAB3e9I6NIADf9IxX3bNlJ2LcOzpVrYTwCJMSOs4G_Tgw");
+        ImageMessage imageMessage = new ImageMessage();
+        imageMessage.setFromUserName(toUserName);
+        imageMessage.setToUserName(fromUsername);
+        imageMessage.setMsgType(MESSAGE_IMAGE);
+        imageMessage.setCreateTime(new Date().getTime());
+        imageMessage.setImage(image);
+        message = imageMessageToXml(imageMessage);
+        return message;
+
+    }
+    /**
+     * 组织NCUT图文消息
+     */
+    public static NewsMessage schoolInfo()
+    {
+        List<News> newsList = new ArrayList<News>();
+        NewsMessage newsMessage = new NewsMessage();
+
+        News news = new News();
+        news.setTitle("北方工业大学Lab1107");
+        news.setDescription("北方有凤，西山最奇；钟灵毓秀，北方工大。\n" +
+                "    北方工业大学是一所以工为主、文理兼融，具有学士、硕士、博士培养层次和高水平棒垒球运动员招收资格的多科性高等学府，具有硕士研究生免试推荐资格，是教育部“卓越工程师教育培养”院校。学校由中央与北京市共建，以北京市管理为主，前身是创立于1946年的“国立北平高级工业职业学校”。随后几经变迁，于1985年经国务院批准，由北京冶金机电学院易名为北方工业大学。");
+        news.setPicUrl("http://lab1107.ngrok.natapp.cn/WeiXin/image/ncut.jpg");
+        news.setUrl("http://www.ncut.edu.cn/");
+        newsList.add(news);
+
+        newsMessage.setCreateTime(new Date().getTime());
+        newsMessage.setMsgType(MESSAGE_NEWS);
+        newsMessage.setArticles(newsList);
+        newsMessage.setArticleCount(newsList.size());
+        return newsMessage;
+    }
+
+    /**************************** 组装整理后的字符串 ********************************/
+
     /**
      * 主菜单
      * @return
@@ -132,49 +155,6 @@ public class MessageUtil
         buffer.append("位置:         石景山区\n");
         buffer.append("系统时间:  " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         return buffer.toString();
-    }
-    /**
-     * 图文信息转为Xml
-     */
-    public static String newsMessageToXml(NewsMessage newsMessage)
-    {
-        XStream xStream = new XStream();
-        xStream.alias("xml",NewsMessage.class);
-        xStream.alias("item",News.class);
-        return xStream.toXML(newsMessage);
-    }
-    /**
-     * 图文消息的组装
-     */
-    public static String initNewsMessage(String toUserName,String fromUserName,NewsMessage newsMessage)
-    {
-        String message = null;
-        newsMessage.setFromUserName(toUserName);
-        newsMessage.setToUserName(fromUserName);
-        message = newsMessageToXml(newsMessage);
-        return message;
-    }
-    /**
-     * 组织NCUT图文消息
-     */
-    public static NewsMessage schoolInfo()
-    {
-        List<News> newsList = new ArrayList<News>();
-        NewsMessage newsMessage = new NewsMessage();
-
-        News news = new News();
-        news.setTitle("北方工业大学Lab1107");
-        news.setDescription("北方有凤，西山最奇；钟灵毓秀，北方工大。\n" +
-                "    北方工业大学是一所以工为主、文理兼融，具有学士、硕士、博士培养层次和高水平棒垒球运动员招收资格的多科性高等学府，具有硕士研究生免试推荐资格，是教育部“卓越工程师教育培养”院校。学校由中央与北京市共建，以北京市管理为主，前身是创立于1946年的“国立北平高级工业职业学校”。随后几经变迁，于1985年经国务院批准，由北京冶金机电学院易名为北方工业大学。");
-        news.setPicUrl("http://lab1107.ngrok.natapp.cn/WeiXin/image/ncut.jpg");
-        news.setUrl("http://www.ncut.edu.cn/");
-        newsList.add(news);
-
-        newsMessage.setCreateTime(new Date().getTime());
-        newsMessage.setMsgType(MESSAGE_NEWS);
-        newsMessage.setArticles(newsList);
-        newsMessage.setArticleCount(newsList.size());
-        return newsMessage;
     }
     /**
      * 当前天气信息输出
@@ -236,5 +216,79 @@ public class MessageUtil
             sb.append("~\\(≧▽≦)/~").append("\n");
         }
         return sb.toString();
+    }
+    /**
+     * 获取access_token
+     * @Author NikoBelic
+     * @Date 16/5/21 22:28
+     */
+    public static String showToken()
+    {
+        return WeiXinUtil.getAccessToken().getAccess_token();
+    }
+
+    /**************************** Xml转换方法 ********************************/
+
+    /**
+     * Xml转换为Map类型
+     * @param request
+     * @return
+     * @throws IOException
+     * @throws DocumentException
+     */
+    public static Map<String,String> xmlToMap(HttpServletRequest request) throws IOException, DocumentException
+    {
+        Map<String,String> map = new HashMap<String,String>();
+
+        SAXReader reader = new SAXReader();
+
+        InputStream ins = request.getInputStream();
+
+        Document doc = reader.read(ins);
+
+        Element root = doc.getRootElement();
+
+        List<Element> list = root.elements();
+        for (Element e : list)
+        {
+            map.put(e.getName(),e.getText());
+        }
+        ins.close();
+        return map;
+    }
+
+    /**
+     * 将文本消息对象转换为xml
+     * @param textMessage
+     * @return
+     */
+    public static String textMessageToXml(TextMessage textMessage)
+    {
+        XStream xstream = new XStream();
+        // 需要将xml的根节点替换成xml
+        xstream.alias("xml",TextMessage.class);
+        return xstream.toXML(textMessage);
+    }
+
+    /**
+     * 图文信息转为Xml
+     */
+    public static String newsMessageToXml(NewsMessage newsMessage)
+    {
+        XStream xStream = new XStream();
+        xStream.alias("xml",NewsMessage.class);
+        xStream.alias("item",News.class);
+        return xStream.toXML(newsMessage);
+    }
+    /**
+     * 图片信息转为Xml
+     * @Author NikoBelic
+     * @Date 16/5/20 15:20
+     */
+    public static String imageMessageToXml(ImageMessage imageMessage)
+    {
+        XStream xStream = new XStream();
+        xStream.alias("xml",ImageMessage.class);
+        return xStream.toXML(imageMessage);
     }
 }

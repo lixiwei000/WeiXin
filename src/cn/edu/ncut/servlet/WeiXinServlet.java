@@ -21,6 +21,7 @@ import java.util.Map;
  */
 public class WeiXinServlet extends HttpServlet
 {
+    private static long time = 0;
     /**
      * doGet请求,和平台对接实现微信服务的认证
      * @param req
@@ -141,6 +142,11 @@ public class WeiXinServlet extends HttpServlet
                         else
                             message = MessageUtil.initText(toUserName,fromUserName,scoreText);
                     }
+                }
+                else if ("7".equals(content))   // 测试AccessToken
+                {
+                    message = MessageUtil.initImageMessage(toUserName,fromUserName);
+                    System.out.println(message);
                 }
                 else if ("help".equals(content))    // 帮助菜单
                 {
